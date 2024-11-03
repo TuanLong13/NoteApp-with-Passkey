@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".EditNoteActivity"
+    tools:context=".noteapp.EditNoteActivity"
     android:padding="20dp">
 
     <ScrollView
@@ -73,7 +73,8 @@
                 android:paddingHorizontal="50dp"
                 android:text="EDIT IMAGE"
                 android:textColor="@color/black"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:radius="10dp"/>
             <Button
                 android:id="@+id/btAlarm"
                 android:layout_width="wrap_content"

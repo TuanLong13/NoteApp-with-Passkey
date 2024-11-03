@@ -15,6 +15,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.Toolbar
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
@@ -36,6 +37,7 @@ class NoteAppActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_noteapp)
+        setSupportActionBar((findViewById(R.id.toolbar)));
         if (checkPermission()) {
             cb_sx = findViewById(R.id.cb_sx)
             logout = findViewById(R.id.logout)
