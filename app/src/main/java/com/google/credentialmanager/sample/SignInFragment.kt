@@ -29,11 +29,15 @@ import androidx.credentials.GetPasswordOption
 import androidx.credentials.GetPublicKeyCredentialOption
 import androidx.credentials.PasswordCredential
 import androidx.credentials.PublicKeyCredential
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.credentialmanager.sample.databinding.FragmentSignInBinding
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class SignInFragment : Fragment() {
 
@@ -76,13 +80,17 @@ class SignInFragment : Fragment() {
 
                 //TODO : Call getSavedCredentials() method to signin using passkey/password
                 val data = getSavedCredentials()
+                if (data != null) {
+                    Log.i("JSON", data)
+                }
                 configureViews(View.INVISIBLE, true)
+                //TODO : complete the authentication process after validating the public key credential to your server and let the user in.
 
-              //TODO : complete the authentication process after validating the public key credential to your server and let the user in.
                 data?.let {
                     sendSignInResponseToServer()
-                    listener.showHome()
+                    listener.showHome(data)
                 }
+
             }
         }
     }
@@ -134,17 +142,29 @@ class SignInFragment : Fragment() {
                 "No credential available. Check logs for additional details"
             )
             return null
+        } catch(e: GetCredentialCancellationException)
+        {
+            configureViews(View.INVISIBLE, true)
+            Log.e("Auth", "getCredential failed with exception: " + e.message.toString())
+            activity?.showErrorAlert(
+                "Login failed: User canceled the selector"
+            )
+            return null
         }
 
         if (result.credential is PublicKeyCredential) {
             val cred = result.credential as PublicKeyCredential
             DataProvider.setSignedInThroughPasskeys(true)
-            return "Passkey: ${cred.authenticationResponseJson}"
+            val json = Json { ignoreUnknownKeys = true }
+            val jsonObject = json.parseToJsonElement(cred.authenticationResponseJson).jsonObject
+            val response = jsonObject["response"]?.jsonObject
+            val id = response?.get("userHandle")?.jsonPrimitive?.content!!
+            return id
         }
         else if (result.credential is PasswordCredential) {
             val cred = result.credential as PasswordCredential
             DataProvider.setSignedInThroughPasskeys(false)
-            return "Got Password - User:${cred.id} Password: ${cred.password}"
+            return cred.id + cred.password
         }
         else if (result.credential is CustomCredential) {
             //If you are also using any external sign-in libraries, parse them here with the utility functions provided.
@@ -160,6 +180,6 @@ class SignInFragment : Fragment() {
     }
 
     interface SignInFragmentCallback {
-        fun showHome()
+        fun showHome(data: String)
     }
 }

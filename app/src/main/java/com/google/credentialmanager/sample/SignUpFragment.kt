@@ -41,6 +41,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.credentialmanager.sample.databinding.FragmentSignUpBinding
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.security.SecureRandom
 
 class SignUpFragment : Fragment() {
@@ -49,7 +52,7 @@ class SignUpFragment : Fragment() {
     private var _binding: FragmentSignUpBinding? = null
     private val binding get() = _binding!!
     private lateinit var listener: SignUpFragmentCallback
-
+    private lateinit var id: String
     override fun onAttach(context: Context) {
         super.onAttach(context)
         try {
@@ -108,7 +111,7 @@ class SignUpFragment : Fragment() {
 
             configureViews(View.INVISIBLE, true)
 
-            listener.showHome()
+            listener.showHome(id)
         }, 2000)
     }
 
@@ -134,7 +137,7 @@ class SignUpFragment : Fragment() {
                     data?.let {
                         registerResponse()
                         DataProvider.setSignedInThroughPasskeys(true)
-                        listener.showHome()
+                        listener.showHome(id)
                     }
                 }
             }
@@ -151,7 +154,6 @@ class SignUpFragment : Fragment() {
             .replace("<userName>", binding.username.text.toString())
             .replace("<userDisplayName>", binding.username.text.toString())
             .replace("<challenge>", getEncodedChallenge())
-
     }
 
     private fun getEncodedUserId(): String {
@@ -185,6 +187,7 @@ class SignUpFragment : Fragment() {
 
         try {
             credentialManager.createCredential(requireActivity(), request) as CreatePasswordResponse
+            id = binding.username.text.toString() + binding.password.text.toString()
         } catch (e: Exception) {
             Log.e("Auth", " Exception Message : " + e.message)
         }
@@ -194,13 +197,22 @@ class SignUpFragment : Fragment() {
         var response: CreatePublicKeyCredentialResponse? = null
 
         //TODO create a CreatePublicKeyCredentialRequest() with necessary registration json from server
-        val request = CreatePublicKeyCredentialRequest(fetchRegistrationJsonFromServer())
+        val regJson = fetchRegistrationJsonFromServer()
+        val request = CreatePublicKeyCredentialRequest(regJson)
+
         //TODO call createCredential() with createPublicKeyCredentialRequest
         try {
             response = credentialManager.createCredential(
                 requireActivity(),
                 request
             ) as CreatePublicKeyCredentialResponse
+
+            val json = Json { ignoreUnknownKeys = true }
+            val jsonObject = json.parseToJsonElement(regJson).jsonObject
+            val user = jsonObject["user"]?.jsonObject
+            id = user?.get("id")?.jsonPrimitive?.content!!
+            Log.i("JSONR", id)
+
         } catch (e: CreateCredentialException) {
             configureProgress(View.INVISIBLE)
             handlePasskeyFailure(e)
@@ -248,7 +260,7 @@ class SignUpFragment : Fragment() {
                 // You have encountered an error from a 3rd-party SDK. If you
                 // make the API call with a request object that's a subclass of
                 // CreateCustomCredentialRequest using a 3rd-party SDK, then you
-                // should check for any custom exception type constants within
+                // should check for any custom exception type constants  within
                 // that SDK to match with e.type. Otherwise, drop or log the
                 // exception.
                 "An unknown error occurred from a 3rd party SDK. Check logs for additional details."
@@ -273,6 +285,6 @@ class SignUpFragment : Fragment() {
     }
 
     interface SignUpFragmentCallback {
-        fun showHome()
+        fun showHome(data: String)
     }
 }

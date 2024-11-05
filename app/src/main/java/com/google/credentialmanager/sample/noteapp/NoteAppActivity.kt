@@ -3,6 +3,7 @@ package com.google.credentialmanager.sample.noteapp
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -33,11 +34,18 @@ class NoteAppActivity : AppCompatActivity() {
     private var cb_sx: CheckBox? = null
     private var logout: Button? = null
     private var emptyNoteListTxt: TextView? = null
+
+    private lateinit var id: String
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_noteapp)
         setSupportActionBar((findViewById(R.id.toolbar)));
+
+        val extra = intent.extras
+        if (extra != null) {
+            id = extra.getString("id")!!
+        }
         if (checkPermission()) {
             cb_sx = findViewById(R.id.cb_sx)
             logout = findViewById(R.id.logout)
@@ -78,7 +86,7 @@ class NoteAppActivity : AppCompatActivity() {
                 Intent(
                     this@NoteAppActivity,
                     AddNoteActivity::class.java
-                )
+                ).putExtra("id", id)
             )
         })
         recyclerView = findViewById(R.id.notesRecyclerView)
@@ -88,9 +96,9 @@ class NoteAppActivity : AppCompatActivity() {
 
         //Thông báo danh sách ghi chú rỗng
         if (notes.size == 0) {
-            emptyNoteListTxt?.setVisibility(View.VISIBLE)
+            emptyNoteListTxt?.visibility = View.VISIBLE
         } else {
-            emptyNoteListTxt?.setVisibility(View.GONE)
+            emptyNoteListTxt?.visibility = View.GONE
         }
 
         //Khởi tạo adapter để hiển thị dữ liệu ở RecyclerView
@@ -106,13 +114,14 @@ class NoteAppActivity : AppCompatActivity() {
             try {
                 //Dùng ContentResolver để thao tác với dữ liệu
                 val contentResolver = contentResolver
-                val uri: Uri = NoteProvider.Companion.CONTENT_URI
+                val uri: Uri = NoteProvider.CONTENT_URI
                 val projection = arrayOf(
                     DBHelper.COLUMN_TITLE,
                     DBHelper.COLUMN_CONTENT,
-                    DBHelper.COLUMN_TIME_CREATED
+                    DBHelper.COLUMN_TIME_CREATED,
+                    DBHelper.COLUMN_USER_ID
                 ) //Các dữ liệu cột cần lấy
-                val selection: String? = null
+                val selection: String? = DBHelper.COLUMN_USER_ID + " = '" + id + "'"
                 val selectionArgs: Array<String>? = null
                 val sortOrder = DBHelper.COLUMN_TIME_CREATED + " DESC"
                 //Kiểu sắp xếp (nên để theo thời gian giảm dần)
@@ -127,7 +136,10 @@ class NoteAppActivity : AppCompatActivity() {
                             cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT))
                         val timeCreated =
                             cursor.getLong(cursor.getColumnIndex(DBHelper.COLUMN_TIME_CREATED))
-                        noteFiles.add(Note(title, content, timeCreated, null))
+                        val userID =
+                            cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_USER_ID))
+
+                        noteFiles.add(Note(title, content, timeCreated, null, userID))
                     } while (cursor.moveToNext())
                     cursor.close()
                 }
@@ -185,4 +197,5 @@ class NoteAppActivity : AppCompatActivity() {
         }
         noteAdapter!!.notifyDataSetChanged()
     }
+
 }

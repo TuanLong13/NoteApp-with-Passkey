@@ -18,6 +18,7 @@ package com.google.credentialmanager.sample
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -27,12 +28,14 @@ import com.google.credentialmanager.sample.R.id
 import com.google.credentialmanager.sample.SignInFragment.SignInFragmentCallback
 import com.google.credentialmanager.sample.SignUpFragment.SignUpFragmentCallback
 import com.google.credentialmanager.sample.databinding.ActivityMainBinding
+import com.google.credentialmanager.sample.noteapp.AddNoteActivity
 import com.google.credentialmanager.sample.noteapp.NoteAppActivity
 
 class MainActivity : AppCompatActivity(), MainFragmentCallback, HomeFragmentCallback,
     SignInFragmentCallback, SignUpFragmentCallback {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var i: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,9 +44,8 @@ class MainActivity : AppCompatActivity(), MainFragmentCallback, HomeFragmentCall
         setContentView(binding.root)
 
         DataProvider.initSharedPref(applicationContext)
-
         if (DataProvider.isSignedIn()) {
-            showHome()
+
         } else {
             loadMainFragment()
         }
@@ -67,14 +69,16 @@ class MainActivity : AppCompatActivity(), MainFragmentCallback, HomeFragmentCall
         loadFragment(MainFragment(), false)
     }
 
-    override fun showHome() {
+    override fun showHome(data: String) {
         supportFragmentManager.popBackStack()
+        i = Intent(
+            this@MainActivity,
+            NoteAppActivity::class.java
+        )
+        i.putExtra("id", data)
         loadFragment(HomeFragment(), true, "home")
-        startActivity(
-            Intent(
-                this@MainActivity,
-                NoteAppActivity::class.java
-            ))
+        startActivity(i)
+
         logout()
     }
 

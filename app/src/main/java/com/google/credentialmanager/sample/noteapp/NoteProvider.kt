@@ -9,9 +9,10 @@ import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteQueryBuilder
 import android.net.Uri
+import android.util.Log
 
 class NoteProvider : ContentProvider() {
-    private var database: SQLiteDatabase? = null
+    private lateinit var database: SQLiteDatabase
     override fun onCreate(): Boolean {
         val dbHelper = DBHelper(context)
         database = dbHelper.writableDatabase
@@ -32,6 +33,7 @@ class NoteProvider : ContentProvider() {
             NOTES -> {}
             NOTE -> queryBuilder.appendWhere(DBHelper.COLUMN_TIME_CREATED + "=" + uri.lastPathSegment)
             else -> throw IllegalArgumentException("Unknown URI: $uri")
+
         }
         val cursor = queryBuilder.query(
             database,
@@ -51,6 +53,7 @@ class NoteProvider : ContentProvider() {
     }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri {
+
         val id = database!!.insert(DBHelper.TABLE_NAME, null, values)
         return if (id > 0) {
             val noteUri = ContentUris.withAppendedId(CONTENT_URI, id)

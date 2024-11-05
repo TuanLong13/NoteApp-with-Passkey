@@ -27,9 +27,14 @@ class AddNoteActivity : AppCompatActivity() {
     private var noteImage: String? = null
     private var title: String? = null
     private var content: String? = null
+    private var id: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_note)
+        val extra = intent.extras
+        if (extra != null) {
+            id = extra.getString("id")!!
+        }
         initView()
     }
 
@@ -60,6 +65,7 @@ class AddNoteActivity : AppCompatActivity() {
                     values.put("content", noteContent)
                     values.put("timeCreated", timeCreated)
                     values.put("imageUri", noteImage)
+                    values.put("userID", id)
                     //Dùng ContentResolver gọi hàm insert để thêm
                     contentResolver.insert(uri, values)
                 } catch (e: Exception) {
