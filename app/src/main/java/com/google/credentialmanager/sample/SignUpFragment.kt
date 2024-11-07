@@ -211,7 +211,6 @@ class SignUpFragment : Fragment() {
             val jsonObject = json.parseToJsonElement(regJson).jsonObject
             val user = jsonObject["user"]?.jsonObject
             id = user?.get("id")?.jsonPrimitive?.content!!
-            Log.i("JSONR", id)
 
         } catch (e: CreateCredentialException) {
             configureProgress(View.INVISIBLE)
@@ -237,21 +236,21 @@ class SignUpFragment : Fragment() {
             is CreatePublicKeyCredentialDomException -> {
                 // Handle the passkey DOM errors thrown according to the
                 // WebAuthn spec using e.domError
-                "An error occurred while creating a passkey, please check logs for additional details."
+                "An error occurred while creating a passkey"
             }
             is CreateCredentialCancellationException -> {
                 // The user intentionally canceled the operation and chose not
                 // to register the credential.
-                "The user intentionally canceled the operation and chose not to register the credential. Check logs for additional details."
+                "The user intentionally canceled the operation and chose not to register the credential."
             }
             is CreateCredentialInterruptedException -> {
                 // Retry-able error. Consider retrying the call.
-                "The operation was interrupted, please retry the call. Check logs for additional details."
+                "The operation was interrupted, please retry the call."
             }
             is CreateCredentialProviderConfigurationException -> {
                 // Your app is missing the provider configuration dependency.
                 // Most likely, you're missing "credentials-play-services-auth".
-                "Your app is missing the provider configuration dependency. Check logs for additional details."
+                "Your app is missing the provider configuration dependency."
             }
             is CreateCredentialUnknownException -> {
                 "An unknown error occurred while creating passkey. Check logs for additional details."
@@ -263,7 +262,7 @@ class SignUpFragment : Fragment() {
                 // should check for any custom exception type constants  within
                 // that SDK to match with e.type. Otherwise, drop or log the
                 // exception.
-                "An unknown error occurred from a 3rd party SDK. Check logs for additional details."
+                "An unknown error occurred from a 3rd party SDK."
             }
             else -> {
                 Log.w("Auth", "Unexpected exception type ${e::class.java.name}")

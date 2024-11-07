@@ -2,8 +2,9 @@ package com.google.credentialmanager.sample.noteapp
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.SearchManager
-import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -16,7 +17,6 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.Toolbar
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
@@ -24,6 +24,7 @@ import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.credentialmanager.sample.R
+
 
 class NoteAppActivity : AppCompatActivity() {
     private var recyclerView: RecyclerView? = null
@@ -61,7 +62,18 @@ class NoteAppActivity : AppCompatActivity() {
                 }
             }
             logout?.setOnClickListener(View.OnClickListener {
-                finish()
+
+                val dialogClickListener =
+                    DialogInterface.OnClickListener { dialog, which ->
+                        when (which) {
+                            DialogInterface.BUTTON_POSITIVE -> {finish()}
+                            DialogInterface.BUTTON_NEGATIVE -> {}
+                        }
+                    }
+
+                val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+                builder.setMessage("Are you sure?").setPositiveButton("Yes", dialogClickListener)
+                    .setNegativeButton("No", dialogClickListener).show()
             })
         } else {
             Toast.makeText(
@@ -196,6 +208,13 @@ class NoteAppActivity : AppCompatActivity() {
             note1.title!!.compareTo(note2.title!!, true)
         }
         noteAdapter!!.notifyDataSetChanged()
+    }
+
+    override fun onBackPressed() {
+        val mainActivity = Intent(Intent.ACTION_MAIN)
+        mainActivity.addCategory(Intent.CATEGORY_HOME)
+        mainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(mainActivity)
     }
 
 }

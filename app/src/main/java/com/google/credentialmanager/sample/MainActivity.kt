@@ -22,7 +22,6 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.google.credentialmanager.sample.HomeFragment.HomeFragmentCallback
 import com.google.credentialmanager.sample.MainFragment.MainFragmentCallback
 import com.google.credentialmanager.sample.R.id
 import com.google.credentialmanager.sample.SignInFragment.SignInFragmentCallback
@@ -31,7 +30,7 @@ import com.google.credentialmanager.sample.databinding.ActivityMainBinding
 import com.google.credentialmanager.sample.noteapp.AddNoteActivity
 import com.google.credentialmanager.sample.noteapp.NoteAppActivity
 
-class MainActivity : AppCompatActivity(), MainFragmentCallback, HomeFragmentCallback,
+class MainActivity : AppCompatActivity(), MainFragmentCallback,
     SignInFragmentCallback, SignUpFragmentCallback {
 
     private lateinit var binding: ActivityMainBinding
@@ -59,8 +58,7 @@ class MainActivity : AppCompatActivity(), MainFragmentCallback, HomeFragmentCall
         loadFragment(SignInFragment(), false)
     }
 
-    override fun logout() {
-        supportFragmentManager.popBackStack("home", FragmentManager.POP_BACK_STACK_INCLUSIVE)
+    private fun logout() {
         loadMainFragment()
     }
 
@@ -76,7 +74,6 @@ class MainActivity : AppCompatActivity(), MainFragmentCallback, HomeFragmentCall
             NoteAppActivity::class.java
         )
         i.putExtra("id", data)
-        loadFragment(HomeFragment(), true, "home")
         startActivity(i)
 
         logout()
