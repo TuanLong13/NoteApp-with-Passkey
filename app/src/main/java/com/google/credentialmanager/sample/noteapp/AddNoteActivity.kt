@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.google.credentialmanager.sample.EncryptionHelper
 import com.google.credentialmanager.sample.R
 import java.io.IOException
 
@@ -38,6 +39,7 @@ class AddNoteActivity : AppCompatActivity() {
     }
 
     private fun initView() {
+        val encryptionHelper = EncryptionHelper()
         titleInput = findViewById(R.id.titleInput)
         contentInput = findViewById(R.id.contentInput)
         iv = findViewById(R.id.imageView)
@@ -58,10 +60,15 @@ class AddNoteActivity : AppCompatActivity() {
                 try {
                     val uri = NoteProvider.CONTENT_URI
 
+                    // Mã hóa tiêu đề và nội dung
+                    val encryptedTitle = encryptionHelper.encrypt(noteTitle)
+                    val encryptedContent = encryptionHelper.encrypt(noteContent)
+                    Log.d("MyTag", "title: $encryptedTitle")
+                    Log.d("MyTag", "content: $encryptedContent")
                     //Thêm các giá trị cần lưu vào ContentValues
                     val values = ContentValues()
-                    values.put("title", noteTitle)
-                    values.put("content", noteContent)
+                    values.put("title", encryptedTitle)
+                    values.put("content", encryptedContent)
                     values.put("timeCreated", timeCreated)
                     values.put("imageUri", noteImage)
                     values.put("userID", id)

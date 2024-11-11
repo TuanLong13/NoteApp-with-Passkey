@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
@@ -23,6 +24,8 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.credentialmanager.sample.EncryptionHelper
 import com.google.credentialmanager.sample.R
 
 
@@ -31,12 +34,12 @@ class NoteAppActivity : AppCompatActivity() {
     private var noteAdapter: NoteAdapter? = null
     private var searchView: SearchView? = null
     private var notes = ArrayList<Note>()
-    private var addNoteBtn: Button? = null
+    private var addNoteBtn: FloatingActionButton? = null
     private var cb_sx: CheckBox? = null
-    private var logout: Button? = null
     private var emptyNoteListTxt: TextView? = null
 
     private lateinit var id: String
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +52,7 @@ class NoteAppActivity : AppCompatActivity() {
         }
         if (checkPermission()) {
             cb_sx = findViewById(R.id.cb_sx)
-            logout = findViewById(R.id.logout)
+
             initView()
             cb_sx?.setOnCheckedChangeListener { compoundButton, isChecked ->
                 if (isChecked) {
@@ -61,20 +64,6 @@ class NoteAppActivity : AppCompatActivity() {
                     noteAdapter!!.notifyDataSetChanged()
                 }
             }
-            logout?.setOnClickListener(View.OnClickListener {
-
-                val dialogClickListener =
-                    DialogInterface.OnClickListener { dialog, which ->
-                        when (which) {
-                            DialogInterface.BUTTON_POSITIVE -> {finish()}
-                            DialogInterface.BUTTON_NEGATIVE -> {}
-                        }
-                    }
-
-                val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-                builder.setMessage("Are you sure?").setPositiveButton("Yes", dialogClickListener)
-                    .setNegativeButton("No", dialogClickListener).show()
-            })
         } else {
             Toast.makeText(
                 this,
@@ -122,6 +111,7 @@ class NoteAppActivity : AppCompatActivity() {
     val noteFiles: ArrayList<Note>
         @SuppressLint("Range")
         get() {
+            val encryptionHelper = EncryptionHelper()
             val noteFiles = ArrayList<Note>()
             try {
                 //Dùng ContentResolver để thao tác với dữ liệu
@@ -143,9 +133,10 @@ class NoteAppActivity : AppCompatActivity() {
                     contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)
                 if (cursor != null && cursor.moveToFirst()) {
                     do {
-                        val title = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE))
+                        val title =
+                            encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE)))
                         val content =
-                            cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT))
+                            encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT)))
                         val timeCreated =
                             cursor.getLong(cursor.getColumnIndex(DBHelper.COLUMN_TIME_CREATED))
                         val userID =
@@ -211,10 +202,37 @@ class NoteAppActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        val mainActivity = Intent(Intent.ACTION_MAIN)
-        mainActivity.addCategory(Intent.CATEGORY_HOME)
-        mainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(mainActivity)
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.logout -> {
+                // Perform logout action
+                showLogoutConfirmationDialog()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Logout")
+        builder.setMessage("Are you sure you want to logout?")
+        builder.setPositiveButton("Yes") { _, _ ->
+            performLogout()
+        }
+        builder.setNegativeButton("No") { dialog, _ ->
+            dialog.dismiss()
+        }
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    private fun performLogout() {
+        finish()
+    }
+
 
 }
