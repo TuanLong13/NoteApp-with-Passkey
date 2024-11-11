@@ -54,7 +54,7 @@
                     android:id="@+id/cb_sx"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sắp xếp"
+                    android:text="Sort by Title"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -65,7 +65,7 @@
                     android:layout_height="wrap_content"
                     android:background="@color/pink_200"
                     android:text="Log out"
-                    android:radius="10dp"
+
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />

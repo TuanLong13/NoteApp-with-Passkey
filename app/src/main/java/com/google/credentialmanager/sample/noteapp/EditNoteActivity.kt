@@ -13,15 +13,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.credentialmanager.sample.R
 import java.io.IOException
 
 class EditNoteActivity : AppCompatActivity() {
-    var alertDialog: AlertDialog? = null
     private var timeCreated: Long = 0
     private var titleInput: EditText? = null
     private var contentInput: EditText? = null

@@ -105,7 +105,7 @@
 
                 <Button
                     android:id="@+id/deleteNoteBtn"
-                    android:layout_width="150dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="right"
                     android:backgroundTint="#FFDEF2"

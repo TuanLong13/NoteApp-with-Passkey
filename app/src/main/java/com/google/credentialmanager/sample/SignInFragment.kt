@@ -31,6 +31,7 @@ import androidx.credentials.PasswordCredential
 import androidx.credentials.PublicKeyCredential
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
+import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.credentialmanager.sample.databinding.FragmentSignInBinding
@@ -80,9 +81,6 @@ class SignInFragment : Fragment() {
 
                 //TODO : Call getSavedCredentials() method to signin using passkey/password
                 val data = getSavedCredentials()
-                if (data != null) {
-                    Log.i("JSON", data)
-                }
                 configureViews(View.INVISIBLE, true)
                 //TODO : complete the authentication process after validating the public key credential to your server and let the user in.
 
@@ -139,7 +137,15 @@ class SignInFragment : Fragment() {
             configureViews(View.INVISIBLE, true)
             Log.e("Auth", "getCredential failed with exception: " + e.message.toString())
             activity?.showErrorAlert(
-                "No credential available. Check logs for additional details"
+                "Login failed: No credential available"
+            )
+            return null
+        } catch(e: GetPublicKeyCredentialDomException)
+        {
+            configureViews(View.INVISIBLE, true)
+            Log.e("Auth", "getCredential failed with exception: " + e.message.toString())
+            activity?.showErrorAlert(
+                "Login failed: Process cancelled by user"
             )
             return null
         } catch(e: GetCredentialCancellationException)
