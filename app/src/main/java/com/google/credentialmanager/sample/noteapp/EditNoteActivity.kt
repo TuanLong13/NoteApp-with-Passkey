@@ -15,6 +15,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.google.credentialmanager.sample.EncryptionHelper
 import com.google.credentialmanager.sample.R
 import java.io.IOException
 
@@ -133,6 +134,7 @@ class EditNoteActivity : AppCompatActivity() {
     @get:SuppressLint("Range")
     private val selectedNote: Unit
         private get() {
+            val encryptionHelper = EncryptionHelper()
             try {
                 val intent = intent
                 val myBundle = intent.getBundleExtra("myBundle")
@@ -146,8 +148,10 @@ class EditNoteActivity : AppCompatActivity() {
                 var content: String? = ""
                 var imgUri: String? = ""
                 if (cursor != null && cursor.moveToFirst()) {
-                    title = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE))
-                    content = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT))
+                    // Giải mã title và content
+                    title = encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE)))
+                    content = encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT)))
+
                     imgUri = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_IMAGE_URI))
                 } else Log.d("MyTag", "Cursor rỗng khi lấy ghi chú được chọn")
                 cursor?.close()

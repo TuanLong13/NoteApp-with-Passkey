@@ -60,8 +60,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="70dp"
-                android:layout_marginBottom="19dp"
-                app:srcCompat="@drawable/ic_launcher_background" />
+                android:layout_marginBottom="19dp" />
 
             <Button
                 android:id="@+id/addImage"
