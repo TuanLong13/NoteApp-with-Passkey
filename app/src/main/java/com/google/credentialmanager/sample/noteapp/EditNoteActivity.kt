@@ -74,16 +74,20 @@ class EditNoteActivity : AppCompatActivity() {
             }
         })
         saveNoteBtn?.setOnClickListener(View.OnClickListener {
+            val encryptionHelper = EncryptionHelper()
             val title = titleInput?.text.toString()
             val content = contentInput?.text.toString()
+
+            val encryptedTitle = encryptionHelper.encrypt(title)
+            val encryptedContent = encryptionHelper.encrypt(content)
             try {
                 val contentResolver = contentResolver
                 val uri = NoteProvider.CONTENT_URI
                 val selection = "timeCreated = ?"
                 val selectionArgs = arrayOf(timeCreated.toString() + "")
                 val values = ContentValues()
-                values.put(DBHelper.COLUMN_TITLE, title)
-                values.put(DBHelper.COLUMN_CONTENT, content)
+                values.put(DBHelper.COLUMN_TITLE, encryptedTitle)
+                values.put(DBHelper.COLUMN_CONTENT, encryptedContent)
                 values.put(DBHelper.COLUMN_TIME_CREATED, System.currentTimeMillis())
                 values.put(DBHelper.COLUMN_IMAGE_URI, noteImage)
                 val rowsUpdated = contentResolver.update(uri, values, selection, selectionArgs)
