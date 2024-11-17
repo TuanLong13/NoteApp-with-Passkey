@@ -1,6 +1,7 @@
 package com.google.credentialmanager.sample.noteapp
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -45,6 +46,7 @@ class Notification(
             NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, builder.build())
     }
 
+    @SuppressLint("NewApi")
     private fun createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is not in the Support Library.
@@ -53,16 +55,14 @@ class Notification(
         String description = getString(R.string.channel_description);*/
         val importance = NotificationManager.IMPORTANCE_DEFAULT
         var channel: NotificationChannel? = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            channel = NotificationChannel(CHANNEL_ID, channelName, importance)
-            channel.enableLights(true)
-            channel.lightColor = Color.RED
-            channel.enableVibration(true)
-            channel.description = channelDesc
-            val notificationManager = context.getSystemService(
-                NotificationManager::class.java
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+        channel = NotificationChannel(CHANNEL_ID, channelName, importance)
+        channel.enableLights(true)
+        channel.lightColor = Color.RED
+        channel.enableVibration(true)
+        channel.description = channelDesc
+        val notificationManager = context.getSystemService(
+            NotificationManager::class.java
+        )
+        notificationManager.createNotificationChannel(channel)
     }
 }

@@ -31,6 +31,7 @@ class EditNoteActivity : AppCompatActivity() {
     private var noteImage: String? = null
     private var title: String? = null
     private var content: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_note)
@@ -74,8 +75,11 @@ class EditNoteActivity : AppCompatActivity() {
             }
         })
         saveNoteBtn?.setOnClickListener(View.OnClickListener {
+            val encryptionHelper = EncryptionHelper()
             val title = titleInput?.text.toString()
             val content = contentInput?.text.toString()
+            val encryptedTitle = encryptionHelper.encrypt(title)
+            val encryptedContent = encryptionHelper.encrypt(content)
             try {
                 val contentResolver = contentResolver
                 val uri = NoteProvider.CONTENT_URI
@@ -84,6 +88,8 @@ class EditNoteActivity : AppCompatActivity() {
                 val values = ContentValues()
                 values.put(DBHelper.COLUMN_TITLE, title)
                 values.put(DBHelper.COLUMN_CONTENT, content)
+                values.put(DBHelper.COLUMN_TITLE, encryptedTitle)
+                values.put(DBHelper.COLUMN_CONTENT, encryptedContent)
                 values.put(DBHelper.COLUMN_TIME_CREATED, System.currentTimeMillis())
                 values.put(DBHelper.COLUMN_IMAGE_URI, noteImage)
                 val rowsUpdated = contentResolver.update(uri, values, selection, selectionArgs)
@@ -149,8 +155,10 @@ class EditNoteActivity : AppCompatActivity() {
                 var imgUri: String? = ""
                 if (cursor != null && cursor.moveToFirst()) {
                     // Giải mã title và content
-                    title = encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE)))
-                    content = encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT)))
+                    title =
+                        encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE)))
+                    content =
+                        encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT)))
 
                     imgUri = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_IMAGE_URI))
                 } else Log.d("MyTag", "Cursor rỗng khi lấy ghi chú được chọn")

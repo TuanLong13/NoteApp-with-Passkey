@@ -95,7 +95,7 @@ class SignUpFragment : Fragment() {
 
                     configureViews(View.VISIBLE, false)
 
-                    //TODO : Save the user credential password with their password provider
+                    //Save the user credential password with their password provider
                     createPassword()
                     simulateServerDelayAndLogIn()
 
@@ -127,12 +127,12 @@ class SignUpFragment : Fragment() {
                 lifecycleScope.launch {
                     configureViews(View.VISIBLE, false)
 
-                    //TODO : Call createPasskey() to sign up with passkey
+                    //Sign up with passkey
 
                     val data = createPasskey()
                     configureViews(View.INVISIBLE, true)
 
-                    //TODO : complete the registration process after sending public key credential to your server and let the user in
+                    //complete the registration process after sending public key credential to your server and let the user in
 
                     data?.let {
                         registerResponse()
@@ -146,10 +146,10 @@ class SignUpFragment : Fragment() {
 
     private fun fetchRegistrationJsonFromServer(): String {
 
-        //TODO fetch registration mock response
+        //fetch registration mock response
         val response = requireContext().readFromAsset("RegFromServer")
 
-//Update userId,challenge, name and Display name in the mock
+        //Update userId,challenge, name and Display name in the mock
         return response.replace("<userId>", getEncodedUserId())
             .replace("<userName>", binding.username.text.toString())
             .replace("<userDisplayName>", binding.username.text.toString())
@@ -178,12 +178,12 @@ class SignUpFragment : Fragment() {
 
     private suspend fun createPassword() {
 
-        //TODO : CreatePasswordRequest with entered username and password
+        //CreatePasswordRequest with entered username and password
         val request = CreatePasswordRequest(
             binding.username.text.toString(),
             binding.password.text.toString()
         )
-        //TODO : Create credential with created password request
+        //Create credential with created password request
 
         try {
             credentialManager.createCredential(requireActivity(), request) as CreatePasswordResponse
@@ -196,11 +196,11 @@ class SignUpFragment : Fragment() {
     private suspend fun createPasskey(): CreatePublicKeyCredentialResponse? {
         var response: CreatePublicKeyCredentialResponse? = null
 
-        //TODO create a CreatePublicKeyCredentialRequest() with necessary registration json from server
+        //create a CreatePublicKeyCredentialRequest() with necessary registration json from server
         val regJson = fetchRegistrationJsonFromServer()
         val request = CreatePublicKeyCredentialRequest(regJson)
 
-        //TODO call createCredential() with createPublicKeyCredentialRequest
+        //call createCredential() with createPublicKeyCredentialRequest
         try {
             response = credentialManager.createCredential(
                 requireActivity(),

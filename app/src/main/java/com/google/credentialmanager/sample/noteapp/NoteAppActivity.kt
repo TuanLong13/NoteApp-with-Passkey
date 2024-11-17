@@ -40,7 +40,6 @@ class NoteAppActivity : AppCompatActivity() {
 
     private lateinit var id: String
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_noteapp)
@@ -50,25 +49,35 @@ class NoteAppActivity : AppCompatActivity() {
         if (extra != null) {
             id = extra.getString("id")!!
         }
-        if (checkPermission()) {
-            cb_sx = findViewById(R.id.cb_sx)
+        if (Build.VERSION.SDK_INT > 32) {
+            if (checkPermission()) {
+                cb_sx = findViewById(R.id.cb_sx)
 
-            initView()
-            cb_sx?.setOnCheckedChangeListener { compoundButton, isChecked ->
-                if (isChecked) {
-                    SortNoteByName()
-                } else {
-                    // Nếu checkbox không được chọn, trở về ban đầu
-                    notes.clear()
-                    notes.addAll(noteFiles)
-                    noteAdapter!!.notifyDataSetChanged()
+                initView()
+                cb_sx?.setOnCheckedChangeListener { compoundButton, isChecked ->
+                    if (isChecked) {
+                        SortNoteByName()
+                    } else {
+                        // Nếu checkbox không được chọn, trở về ban đầu
+                        notes.clear()
+                        notes.addAll(noteFiles)
+                        noteAdapter!!.notifyDataSetChanged()
+                    }
                 }
+            } else {
+                Toast.makeText(
+                    this,
+                    "Cần được cấp quyền để sử dụng tính năng thêm hình ảnh",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-        } else {
+        }
+        else
+        {
             Toast.makeText(
                 this,
-                "Cần được cấp quyền để sử dụng tính năng thêm hình ảnh",
-                Toast.LENGTH_SHORT
+                "Ứng dụng này yêu cầu Android 33 trở lên để sử dụng",
+                Toast.LENGTH_LONG
             ).show()
         }
     }
@@ -123,7 +132,7 @@ class NoteAppActivity : AppCompatActivity() {
                     DBHelper.COLUMN_TIME_CREATED,
                     DBHelper.COLUMN_USER_ID
                 ) //Các dữ liệu cột cần lấy
-                val selection: String? = DBHelper.COLUMN_USER_ID + " = '" + id + "'"
+                val selection: String = DBHelper.COLUMN_USER_ID + " = '" + id + "'"
                 val selectionArgs: Array<String>? = null
                 val sortOrder = DBHelper.COLUMN_TIME_CREATED + " DESC"
                 //Kiểu sắp xếp (nên để theo thời gian giảm dần)
@@ -172,17 +181,27 @@ class NoteAppActivity : AppCompatActivity() {
         return true
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun checkPermission(): Boolean {
-        val result = checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES)
-        if (result != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
-                0
-            )
+    private fun checkPermission(): Boolean {
+        if (Build.VERSION.SDK_INT > 32) {
+            val result = checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES)
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
+                    0
+                )
+            }
+            return result == PackageManager.PERMISSION_GRANTED
         }
-        return result == PackageManager.PERMISSION_GRANTED
+        else
+        {
+            Toast.makeText(
+                this,
+                "Cần được cấp quyền để sử dụng tính năng thêm hình ảnh",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        return false
     }
 
     override fun onRequestPermissionsResult(

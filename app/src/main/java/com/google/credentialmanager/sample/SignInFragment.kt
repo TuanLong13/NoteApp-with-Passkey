@@ -79,10 +79,10 @@ class SignInFragment : Fragment() {
             lifecycleScope.launch {
                 configureViews(View.VISIBLE, false)
 
-                //TODO : Call getSavedCredentials() method to signin using passkey/password
+                //Call getSavedCredentials() method to signin using passkey/password
                 val data = getSavedCredentials()
                 configureViews(View.INVISIBLE, true)
-                //TODO : complete the authentication process after validating the public key credential to your server and let the user in.
+                //complete the authentication process after validating the public key credential to your server and let the user in.
 
                 data?.let {
                     sendSignInResponseToServer()
@@ -104,7 +104,7 @@ class SignInFragment : Fragment() {
     }
 
     private fun fetchAuthJsonFromServer(): String {
-        //TODO fetch authentication mock json
+        //fetch authentication mock json
         return requireContext().readFromAsset("AuthFromServer")
 
     }
@@ -115,13 +115,13 @@ class SignInFragment : Fragment() {
 
     private suspend fun getSavedCredentials(): String? {
 
-        //TODO create a GetPublicKeyCredentialOption() with necessary authentication json from server
+        //create a GetPublicKeyCredentialOption() with necessary authentication json from server
         val getPublicKeyCredentialOption =
             GetPublicKeyCredentialOption(fetchAuthJsonFromServer(), null)
-        //TODO create a PasswordOption to retrieve all the associated user's password
+        //create a PasswordOption to retrieve all the associated user's password
         val getPasswordOption = GetPasswordOption()
 
-        //TODO call getCredential() with required credential options
+        //call getCredential() with required credential options
         val result = try {
             credentialManager.getCredential(
                 requireActivity(),
@@ -160,6 +160,7 @@ class SignInFragment : Fragment() {
 
         if (result.credential is PublicKeyCredential) {
             val cred = result.credential as PublicKeyCredential
+            Log.i("Login JSON", cred.authenticationResponseJson)
             DataProvider.setSignedInThroughPasskeys(true)
             val json = Json { ignoreUnknownKeys = true }
             val jsonObject = json.parseToJsonElement(cred.authenticationResponseJson).jsonObject

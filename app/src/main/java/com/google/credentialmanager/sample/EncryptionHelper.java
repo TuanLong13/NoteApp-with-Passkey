@@ -1,4 +1,5 @@
 package com.google.credentialmanager.sample;
+import android.annotation.SuppressLint;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 
@@ -40,6 +41,7 @@ public class EncryptionHelper {
         return keyStore.containsAlias(KEY_ALIAS);
     }
 
+    @SuppressLint("NewApi")
     public String encrypt(String plaintext) throws Exception {
         // Load the key from Android Keystore
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -65,7 +67,7 @@ public class EncryptionHelper {
         return Base64.getEncoder().encodeToString(ivAndEncryptedData);
     }
 
-
+    @SuppressLint("NewApi")
     public String decrypt(String ciphertext) throws Exception {
         KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
