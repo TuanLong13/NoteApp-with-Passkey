@@ -150,10 +150,12 @@ class SignUpFragment : Fragment() {
         val response = requireContext().readFromAsset("RegFromServer")
 
         //Update userId,challenge, name and Display name in the mock
-        return response.replace("<userId>", getEncodedUserId())
+        val res = response.replace("<userId>", getEncodedUserId())
             .replace("<userName>", binding.username.text.toString())
             .replace("<userDisplayName>", binding.username.text.toString())
             .replace("<challenge>", getEncodedChallenge())
+        Log.i("Register JSON", res)
+        return res
     }
 
     private fun getEncodedUserId(): String {
