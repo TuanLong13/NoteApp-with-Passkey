@@ -18,7 +18,6 @@ import com.google.credentialmanager.sample.EncryptionHelper
 import com.google.credentialmanager.sample.EncryptionHelper.encrypt
 import com.google.credentialmanager.sample.R
 import java.io.IOException
-import java.security.AccessController.getContext
 
 
 class AddNoteActivity : AppCompatActivity() {
