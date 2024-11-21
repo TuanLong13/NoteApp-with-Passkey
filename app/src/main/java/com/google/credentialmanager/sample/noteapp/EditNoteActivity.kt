@@ -3,6 +3,7 @@ package com.google.credentialmanager.sample.noteapp
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -16,6 +17,8 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.credentialmanager.sample.EncryptionHelper
+import com.google.credentialmanager.sample.EncryptionHelper.decrypt
+import com.google.credentialmanager.sample.EncryptionHelper.encrypt
 import com.google.credentialmanager.sample.R
 import java.io.IOException
 
@@ -74,12 +77,16 @@ class EditNoteActivity : AppCompatActivity() {
             }
         })
         saveNoteBtn?.setOnClickListener(View.OnClickListener {
-            val encryptionHelper = EncryptionHelper()
+
+            val context: Context = getApplicationContext() // Context của Activity hoặc Application
+            // Lấy khóa AES hoặc tạo mới nếu chưa có
+            val aesKey = EncryptionHelper.getOrCreateKey(context)
+
             val title = titleInput?.text.toString()
             val content = contentInput?.text.toString()
 
-            val encryptedTitle = encryptionHelper.encrypt(title)
-            val encryptedContent = encryptionHelper.encrypt(content)
+            val encryptedTitle = encrypt(title,aesKey)
+            val encryptedContent = encrypt(content,aesKey)
             try {
                 val contentResolver = contentResolver
                 val uri = NoteProvider.CONTENT_URI
@@ -138,7 +145,9 @@ class EditNoteActivity : AppCompatActivity() {
     @get:SuppressLint("Range")
     private val selectedNote: Unit
         private get() {
-            val encryptionHelper = EncryptionHelper()
+            val context: Context = getApplicationContext() // Context của Activity hoặc Application
+            // Lấy khóa AES hoặc tạo mới nếu chưa có
+            val aesKey = EncryptionHelper.getOrCreateKey(context)
             try {
                 val intent = intent
                 val myBundle = intent.getBundleExtra("myBundle")
@@ -153,8 +162,8 @@ class EditNoteActivity : AppCompatActivity() {
                 var imgUri: String? = ""
                 if (cursor != null && cursor.moveToFirst()) {
                     // Giải mã title và content
-                    title = encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE)))
-                    content = encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT)))
+                    title = decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE)), aesKey)
+                    content = decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT)), aesKey)
 
                     imgUri = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_IMAGE_URI))
                 } else Log.d("MyTag", "Cursor rỗng khi lấy ghi chú được chọn")

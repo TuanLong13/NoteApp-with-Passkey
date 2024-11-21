@@ -1,6 +1,7 @@
 package com.google.credentialmanager.sample.noteapp
 
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
@@ -14,8 +15,11 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.credentialmanager.sample.EncryptionHelper
+import com.google.credentialmanager.sample.EncryptionHelper.encrypt
 import com.google.credentialmanager.sample.R
 import java.io.IOException
+import java.security.AccessController.getContext
+
 
 class AddNoteActivity : AppCompatActivity() {
     private var titleInput: EditText? = null
@@ -39,7 +43,10 @@ class AddNoteActivity : AppCompatActivity() {
     }
 
     private fun initView() {
-        val encryptionHelper = EncryptionHelper()
+        val context: Context = getApplicationContext() // Context của Activity hoặc Application
+        // Lấy khóa AES hoặc tạo mới nếu chưa có
+        val aesKey = EncryptionHelper.getOrCreateKey(context)
+
         titleInput = findViewById(R.id.titleInput)
         contentInput = findViewById(R.id.contentInput)
         iv = findViewById(R.id.imageView)
@@ -61,8 +68,9 @@ class AddNoteActivity : AppCompatActivity() {
                     val uri = NoteProvider.CONTENT_URI
 
                     // Mã hóa tiêu đề và nội dung
-                    val encryptedTitle = encryptionHelper.encrypt(noteTitle)
-                    val encryptedContent = encryptionHelper.encrypt(noteContent)
+                    val encryptedTitle = encrypt(noteTitle,aesKey)
+                    val encryptedContent = encrypt(noteContent,aesKey)
+
                     Log.d("MyTag", "title: $encryptedTitle")
                     Log.d("MyTag", "content: $encryptedContent")
                     //Thêm các giá trị cần lưu vào ContentValues

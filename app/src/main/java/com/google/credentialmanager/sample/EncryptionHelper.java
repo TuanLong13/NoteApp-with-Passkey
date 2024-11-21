@@ -1,87 +1,103 @@
 package com.google.credentialmanager.sample;
+
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.util.Log;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
-import java.nio.charset.StandardCharsets;
-import java.security.KeyStore;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Base64;
 
 public class EncryptionHelper {
-    private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
-    private static final String AES_MODE = "AES/GCM/NoPadding";
-    private static final String KEY_ALIAS = "NoteAppKey";
-    private static final int IV_SIZE = 12;  // Initialization Vector (IV) size
-    private static final int TAG_LENGTH = 128;
+    private static final String AES_MODE = "AES/ECB/PKCS5Padding"; // Thay đổi chế độ mã hóa sang ECB với padding
+    private static final int KEY_SIZE = 128; // Độ dài khóa AES
+    private static final String PREFS_NAME = "secure_prefs"; // Tên file SharedPreferences
+    private static final String AES_KEY = "aes_key"; // Key để lưu trữ khóa AES trong SharedPreferences
 
-    public EncryptionHelper() throws Exception {
-        if (!keyExists()) {
-            generateKey();
+
+    public static String generateSecretKey() throws Exception {
+
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(KEY_SIZE); // Đặt kích thước khóa (128-bit)
+
+        // Sinh khóa AES
+        SecretKey secretKey = keyGen.generateKey();
+
+        // Mã hóa khóa thành chuỗi Base64 để dễ lưu trữ hoặc truyền đi
+        return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+    }
+    public static String getOrCreateKey(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String key = sharedPreferences.getString(AES_KEY, null); // Lấy khóa từ SharedPreferences
+
+        if (key == null) { // Nếu khóa không tồn tại
+            try {
+                key = generateSecretKey(); // Tạo khóa mới
+                sharedPreferences.edit().putString(AES_KEY, key).apply(); // Lưu khóa vào SharedPreferences
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        return key;
     }
 
-    private void generateKey() throws Exception {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
-        keyGenerator.init(new KeyGenParameterSpec.Builder(KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .build());
-        keyGenerator.generateKey();
-    }
+    public static String encrypt(String plainText, String base64SecretKey) throws Exception {
+        // Giải mã khóa từ Base64 thành dạng nhị phân
+        byte[] decodedKey = Base64.getDecoder().decode(base64SecretKey);
 
-    private boolean keyExists() throws Exception {
-        KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
-        keyStore.load(null);
-        return keyStore.containsAlias(KEY_ALIAS);
-    }
+        // Tạo SecretKey từ dữ liệu nhị phân
+        SecretKeySpec secretKey = new SecretKeySpec(decodedKey, "AES");
 
-    public String encrypt(String plaintext) throws Exception {
-        // Load the key from Android Keystore
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-        SecretKey secretKey = (SecretKey) keyStore.getKey(KEY_ALIAS, null);
-
-        // Initialize the cipher with AES-GCM mode and let it generate an IV
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        // Thiết lập Cipher ở chế độ mã hóa
+        Cipher cipher = Cipher.getInstance(AES_MODE);
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 
-        // Get the automatically generated IV
-        byte[] iv = cipher.getIV();
+        // Mã hóa dữ liệu
+        byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
 
-        // Encrypt the plaintext
-        byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
+        // Chuyển dữ liệu mã hóa thành Base64
+        return Base64.getEncoder().encodeToString(encryptedBytes);
 
-        // Concatenate IV and encrypted data
-        byte[] ivAndEncryptedData = new byte[iv.length + encryptedBytes.length];
-        System.arraycopy(iv, 0, ivAndEncryptedData, 0, iv.length);
-        System.arraycopy(encryptedBytes, 0, ivAndEncryptedData, iv.length, encryptedBytes.length);
-
-        // Encode the concatenated IV and encrypted data to Base64 for storage
-        return Base64.getEncoder().encodeToString(ivAndEncryptedData);
     }
 
 
-    public String decrypt(String ciphertext) throws Exception {
-        KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
-        keyStore.load(null);
-        SecretKey secretKey = (SecretKey) keyStore.getKey(KEY_ALIAS, null);
+    public static String decrypt(String encryptedText, String base64SecretKey) throws Exception {
+        try {
+            // Giải mã khóa từ Base64 thành dạng nhị phân
+            byte[] decodedKey = Base64.getDecoder().decode(base64SecretKey);
 
-        Cipher cipher = Cipher.getInstance(AES_MODE);
-        byte[] ivAndEncryptedData = Base64.getDecoder().decode(ciphertext);
-        byte[] iv = new byte[IV_SIZE];
-        System.arraycopy(ivAndEncryptedData, 0, iv, 0, IV_SIZE);
+            // Tạo SecretKey từ dữ liệu nhị phân
+            SecretKeySpec secretKey = new SecretKeySpec(decodedKey, "AES");
 
-        GCMParameterSpec gcmSpec = new GCMParameterSpec(TAG_LENGTH, iv);
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec);
+            // Thiết lập Cipher ở chế độ giải mã
+            Cipher cipher = Cipher.getInstance(AES_MODE);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey);
 
-        byte[] encryptedData = new byte[ivAndEncryptedData.length - IV_SIZE];
-        System.arraycopy(ivAndEncryptedData, IV_SIZE, encryptedData, 0, encryptedData.length);
+            // Giải mã Base64 thành nhị phân
+            byte[] decodedBytes = Base64.getDecoder().decode(encryptedText);
 
-        return new String(cipher.doFinal(encryptedData));
+            // Giải mã bằng AES
+            byte[] decryptedBytes = cipher.doFinal(decodedBytes);
+
+            // Chuyển byte thành chuỗi văn bản gốc
+            return new String(decryptedBytes);
+        } catch (NoSuchAlgorithmException e) {
+            Log.e("MyTag", "Error during decryption", e);
+            throw e;
+        }
+
     }
+
 }

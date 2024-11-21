@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.SearchManager
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -26,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.credentialmanager.sample.EncryptionHelper
+import com.google.credentialmanager.sample.EncryptionHelper.decrypt
 import com.google.credentialmanager.sample.R
 
 
@@ -111,7 +113,10 @@ class NoteAppActivity : AppCompatActivity() {
     val noteFiles: ArrayList<Note>
         @SuppressLint("Range")
         get() {
-            val encryptionHelper = EncryptionHelper()
+            val context: Context = getApplicationContext() // Context của Activity hoặc Application
+            // Lấy khóa AES hoặc tạo mới nếu chưa có
+            val aesKey = EncryptionHelper.getOrCreateKey(context)
+
             val noteFiles = ArrayList<Note>()
             try {
                 //Dùng ContentResolver để thao tác với dữ liệu
@@ -134,9 +139,9 @@ class NoteAppActivity : AppCompatActivity() {
                 if (cursor != null && cursor.moveToFirst()) {
                     do {
                         val title =
-                            encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE)))
+                            decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_TITLE)), aesKey)
                         val content =
-                            encryptionHelper.decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT)))
+                            decrypt(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_CONTENT)), aesKey)
                         val timeCreated =
                             cursor.getLong(cursor.getColumnIndex(DBHelper.COLUMN_TIME_CREATED))
                         val userID =
