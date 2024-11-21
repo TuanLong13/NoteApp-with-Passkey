@@ -1,23 +1,14 @@
 package com.google.credentialmanager.sample;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
 import android.util.Log;
-
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Base64;
 
 public class EncryptionHelper {
@@ -61,7 +52,7 @@ public class EncryptionHelper {
         SecretKeySpec secretKey = new SecretKeySpec(decodedKey, "AES");
 
         // Thiết lập Cipher ở chế độ mã hóa
-        Cipher cipher = Cipher.getInstance(AES_MODE);
+        @SuppressLint("GetInstance") Cipher cipher = Cipher.getInstance(AES_MODE);
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 
         // Mã hóa dữ liệu
@@ -82,7 +73,7 @@ public class EncryptionHelper {
             SecretKeySpec secretKey = new SecretKeySpec(decodedKey, "AES");
 
             // Thiết lập Cipher ở chế độ giải mã
-            Cipher cipher = Cipher.getInstance(AES_MODE);
+            @SuppressLint("GetInstance") Cipher cipher = Cipher.getInstance(AES_MODE);
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
 
             // Giải mã Base64 thành nhị phân
